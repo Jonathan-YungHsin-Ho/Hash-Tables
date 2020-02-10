@@ -102,12 +102,14 @@ class HashTable:
 
         Fill this in.
         '''
-        pass
-        # self.capacity *= 2
-        # new_storage = [None] * self.capacity
-        # for index in range(len(self.storage)):
-        #     pass
-        # self.storage = new_storage
+        self.capacity *= 2
+        prev_storage = self.storage
+        self.storage = [None] * self.capacity
+        for index in range(len(prev_storage)):
+            current_node = prev_storage[index]
+            while current_node:
+                self.insert(current_node.key, current_node.value)
+                current_node = current_node.next
 
 
 if __name__ == "__main__":
