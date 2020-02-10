@@ -20,6 +20,9 @@ class HashTable:
         self.capacity = capacity  # Number of buckets in the hash table
         self.storage = [None] * capacity
 
+        self.count = 0
+        self.resized = False
+
     def _hash(self, key):
         '''
         Hash an arbitrary key and return an integer.
@@ -54,15 +57,18 @@ class HashTable:
         index = self._hash_mod(key)
         if not self.storage[index]:
             self.storage[index] = LinkedPair(key, value)
+            self.auto_resize(1)
         else:
             current_node = self.storage[index]
             while current_node:
                 if current_node.key == key:
                     current_node.value = value
+                    self.auto_resize(1)
                     return
                 previous_node = current_node
                 current_node = current_node.next
             previous_node.next = LinkedPair(key, value)
+            self.auto_resize(1)
 
     def remove(self, key):
         '''
@@ -73,13 +79,19 @@ class HashTable:
         Fill this in.
         '''
         index = self._hash_mod(key)
-        current_node = self.storage[index]
-        while current_node and current_node.key != key:
-            current_node = current_node.next
-        if current_node:
-            current_node.value = None
+        if self.storage[index].key == key:
+            new_head = self.storage[index].next
+            self.storage[index] = new_head
+            self.auto_resize(-1)
         else:
-            print('Key not found')
+            current_node = self.storage[index]
+            while current_node.next and current_node.next.key != key:
+                current_node = current_node.next
+            if current_node.next:
+                current_node.next = current_node.next.next
+                self.auto_resize(-1)
+            else:
+                print('Key not found')
 
     def retrieve(self, key):
         '''
@@ -95,21 +107,32 @@ class HashTable:
             current_node = current_node.next
         return current_node.value if current_node else None
 
-    def resize(self):
+    def resize(self, n=2):
         '''
         Doubles the capacity of the hash table and
         rehash all key/value pairs.
 
         Fill this in.
         '''
-        self.capacity *= 2
+        self.capacity *= n
         prev_storage = self.storage
-        self.storage = [None] * self.capacity
+        self.storage = [None] * int(self.capacity)
+        self.count = 0
         for index in range(len(prev_storage)):
             current_node = prev_storage[index]
             while current_node:
                 self.insert(current_node.key, current_node.value)
                 current_node = current_node.next
+        self.resized = True
+
+    def auto_resize(self, n):
+        self.count += n
+        load_factor = self.count / self.capacity
+        if self.resized:
+            if load_factor > 0.7:
+                self.resize(2)
+            elif load_factor < 0.2:
+                self.resize(0.5)
 
 
 if __name__ == "__main__":
