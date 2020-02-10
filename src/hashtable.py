@@ -72,7 +72,14 @@ class HashTable:
 
         Fill this in.
         '''
-        pass
+        index = self._hash_mod(key)
+        current_node = self.storage[index]
+        while current_node and current_node.key != key:
+            current_node = current_node.next
+        if current_node:
+            current_node.value = None
+        else:
+            print('Key not found')
 
     def retrieve(self, key):
         '''
@@ -95,11 +102,12 @@ class HashTable:
 
         Fill this in.
         '''
-        self.capacity *= 2
-        new_storage = [None] * self.capacity
+        pass
+        # self.capacity *= 2
+        # new_storage = [None] * self.capacity
         # for index in range(len(self.storage)):
         #     pass
-        self.storage = new_storage
+        # self.storage = new_storage
 
 
 if __name__ == "__main__":
