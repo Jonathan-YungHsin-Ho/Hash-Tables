@@ -88,7 +88,6 @@ class HashTable:
         if self.storage[index].key == key:
             new_head = self.storage[index].next
             self.storage[index] = new_head
-
             self.count -= 1
             self.auto_resize()
         else:
@@ -97,7 +96,6 @@ class HashTable:
                 current_node = current_node.next
             if current_node.next:
                 current_node.next = current_node.next.next
-
                 self.count -= 1
                 self.auto_resize()
             else:
