@@ -126,8 +126,7 @@ class HashTable:
         '''
         self.is_resizing = True
 
-        self.capacity *= n
-        self.capacity = int(self.capacity)
+        self.capacity = int(n * self.capacity)
         prev_storage = self.storage
         self.storage = [None] * self.capacity
         self.count = 0
