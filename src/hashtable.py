@@ -20,8 +20,10 @@ class HashTable:
         self.capacity = capacity  # Number of buckets in the hash table
         self.storage = [None] * capacity
 
+        # Attributes for auto resize functionality
         self.count = 0
         self.resized = False
+        self.is_resizing = False
 
     def _hash(self, key):
         '''
@@ -55,20 +57,21 @@ class HashTable:
         Fill this in.
         '''
         index = self._hash_mod(key)
+        self.count += 1
         if not self.storage[index]:
             self.storage[index] = LinkedPair(key, value)
-            self.auto_resize(1)
+            self.auto_resize()
         else:
             current_node = self.storage[index]
             while current_node:
                 if current_node.key == key:
                     current_node.value = value
-                    self.auto_resize(1)
+                    self.auto_resize()
                     return
                 previous_node = current_node
                 current_node = current_node.next
             previous_node.next = LinkedPair(key, value)
-            self.auto_resize(1)
+            self.auto_resize()
 
     def remove(self, key):
         '''
@@ -82,14 +85,18 @@ class HashTable:
         if self.storage[index].key == key:
             new_head = self.storage[index].next
             self.storage[index] = new_head
-            self.auto_resize(-1)
+
+            self.count -= 1
+            self.auto_resize()
         else:
             current_node = self.storage[index]
             while current_node.next and current_node.next.key != key:
                 current_node = current_node.next
             if current_node.next:
                 current_node.next = current_node.next.next
-                self.auto_resize(-1)
+
+                self.count -= 1
+                self.auto_resize()
             else:
                 print('Key not found')
 
@@ -114,25 +121,33 @@ class HashTable:
 
         Fill this in.
         '''
+        self.is_resizing = True
+
         self.capacity *= n
+        self.capacity = int(self.capacity)
         prev_storage = self.storage
-        self.storage = [None] * int(self.capacity)
+        self.storage = [None] * self.capacity
         self.count = 0
         for index in range(len(prev_storage)):
             current_node = prev_storage[index]
             while current_node:
                 self.insert(current_node.key, current_node.value)
                 current_node = current_node.next
+
+        self.is_resizing = False
         self.resized = True
 
-    def auto_resize(self, n):
-        self.count += n
+    def resize_check(self):
         load_factor = self.count / self.capacity
         if self.resized:
             if load_factor > 0.7:
                 self.resize(2)
             elif load_factor < 0.2:
                 self.resize(0.5)
+
+    def auto_resize(self):
+        if not self.is_resizing:
+            self.resize_check()
 
 
 if __name__ == "__main__":
