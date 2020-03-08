@@ -1,21 +1,29 @@
 # '''
 # Linked List hash table key/value pair
 # '''
+
+
 class LinkedPair:
     def __init__(self, key, value):
         self.key = key
         self.value = value
         self.next = None
 
+
 class HashTable:
     '''
     A hash table that with `capacity` buckets
     that accepts string keys
     '''
+
     def __init__(self, capacity):
         self.capacity = capacity  # Number of buckets in the hash table
         self.storage = [None] * capacity
 
+        # Attributes for auto resize functionality
+        self.count = 0
+        self.resized = False
+        self.is_resizing = False
 
     def _hash(self, key):
         '''
@@ -25,23 +33,23 @@ class HashTable:
         '''
         return hash(key)
 
-
     def _hash_djb2(self, key):
         '''
         Hash an arbitrary key using DJB2 hash
 
         OPTIONAL STRETCH: Research and implement DJB2
         '''
-        pass
-
+        hash = 5381
+        for c in key:
+            hash = (hash * 33) + ord(c)
+        return hash
 
     def _hash_mod(self, key):
         '''
         Take an arbitrary key and return a valid integer index
         within the storage capacity of the hash table.
         '''
-        return self._hash(key) % self.capacity
-
+        return self._hash_djb2(key) % self.capacity
 
     def insert(self, key, value):
         '''
@@ -51,9 +59,22 @@ class HashTable:
 
         Fill this in.
         '''
-        pass
-
-
+        index = self._hash_mod(key)
+        self.count += 1
+        if not self.storage[index]:
+            self.storage[index] = LinkedPair(key, value)
+            self.auto_resize()
+        else:
+            current_node = self.storage[index]
+            while current_node:
+                if current_node.key == key:
+                    current_node.value = value
+                    self.auto_resize()
+                    return
+                previous_node = current_node
+                current_node = current_node.next
+            previous_node.next = LinkedPair(key, value)
+            self.auto_resize()
 
     def remove(self, key):
         '''
@@ -63,8 +84,22 @@ class HashTable:
 
         Fill this in.
         '''
-        pass
-
+        index = self._hash_mod(key)
+        if self.storage[index].key == key:
+            new_head = self.storage[index].next
+            self.storage[index] = new_head
+            self.count -= 1
+            self.auto_resize()
+        else:
+            current_node = self.storage[index]
+            while current_node.next and current_node.next.key != key:
+                current_node = current_node.next
+            if current_node.next:
+                current_node.next = current_node.next.next
+                self.count -= 1
+                self.auto_resize()
+            else:
+                print('Key not found')
 
     def retrieve(self, key):
         '''
@@ -74,18 +109,45 @@ class HashTable:
 
         Fill this in.
         '''
-        pass
+        index = self._hash_mod(key)
+        current_node = self.storage[index]
+        while current_node and current_node.key != key:
+            current_node = current_node.next
+        return current_node.value if current_node else None
 
-
-    def resize(self):
+    def resize(self, n=2):
         '''
         Doubles the capacity of the hash table and
         rehash all key/value pairs.
 
         Fill this in.
         '''
-        pass
+        self.is_resizing = True
 
+        self.capacity = int(n * self.capacity)
+        prev_storage = self.storage
+        self.storage = [None] * self.capacity
+        self.count = 0
+        for index in range(len(prev_storage)):
+            current_node = prev_storage[index]
+            while current_node:
+                self.insert(current_node.key, current_node.value)
+                current_node = current_node.next
+
+        self.is_resizing = False
+        self.resized = True
+
+    def resize_check(self):
+        load_factor = self.count / self.capacity
+        if self.resized:
+            if load_factor > 0.7:
+                self.resize(2)
+            elif load_factor < 0.2:
+                self.resize(0.5)
+
+    def auto_resize(self):
+        if not self.is_resizing:
+            self.resize_check()
 
 
 if __name__ == "__main__":

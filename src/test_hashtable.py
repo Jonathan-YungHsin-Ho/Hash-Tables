@@ -192,6 +192,18 @@ class TestHashTable(unittest.TestCase):
         return_value = ht.retrieve("key-9")
         self.assertTrue(return_value == "val-9")
 
+        # Test for auto-resize
+        ht.insert("key-10", "val-10")
+        self.assertTrue(len(ht.storage) == 16)
+
+        ht.insert("key-11", "val-11")
+
+        self.assertTrue(len(ht.storage) == 32)
+        return_value = ht.retrieve("key-10")
+        self.assertTrue(return_value == "val-10")
+        return_value = ht.retrieve("key-11")
+        self.assertTrue(return_value == "val-11")
+
 
 if __name__ == '__main__':
     unittest.main()
